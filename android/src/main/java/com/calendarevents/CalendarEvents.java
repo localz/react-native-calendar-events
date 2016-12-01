@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.Manifest;
+import android.database.Cursor;
 import android.net.Uri;
 import android.provider.CalendarContract;
 import android.support.v4.app.ActivityCompat;
@@ -87,6 +88,26 @@ public class CalendarEvents extends ReactContextBaseJavaModule {
     }
     //endregion
 
+    //region Calendar Accessors
+    private int getDefaultCalendarId(ContentResolver cr) {
+        Cursor cursor = cr.query(
+                Uri.parse("content://com.android.calendar/calendars"),
+                (new String[] { CalendarContract.Calendars._ID, CalendarContract.Calendars.OWNER_ACCOUNT }),
+                null,
+                null,
+                null
+        );
+        assert cursor != null;
+        while (cursor.moveToNext()) {
+            if (!cursor.getString(1).contains("calendar.google.com")) {
+                return Integer.valueOf(cursor.getString(0));
+            }
+        }
+        cursor.close();
+        return 1;
+    }
+    //endregion
+
     //region Event Accessors
     public WritableMap addEvent(String title, ReadableMap details) throws ParseException {
         String dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -97,7 +118,8 @@ public class CalendarEvents extends ReactContextBaseJavaModule {
         ContentValues eventValues = new ContentValues();
 
         WritableMap event = Arguments.createMap();
-        eventValues.put(CalendarContract.Events.CALENDAR_ID, 1);
+        eventValues.put(CalendarContract.Events.CALENDAR_ID, getDefaultCalendarId(cr));
+
 
         if (title != null) {
             eventValues.put(CalendarContract.Events.TITLE, title);
@@ -238,4 +260,3 @@ public class CalendarEvents extends ReactContextBaseJavaModule {
     }
     //endregion
 }
-
