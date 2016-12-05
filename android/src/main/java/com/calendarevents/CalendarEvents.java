@@ -92,14 +92,14 @@ public class CalendarEvents extends ReactContextBaseJavaModule {
     private int getDefaultCalendarId(ContentResolver cr) {
         Cursor cursor = cr.query(
                 Uri.parse("content://com.android.calendar/calendars"),
-                (new String[] { CalendarContract.Calendars._ID, CalendarContract.Calendars.OWNER_ACCOUNT }),
+                (new String[] { CalendarContract.Calendars._ID, CalendarContract.Calendars.OWNER_ACCOUNT, CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL }),
                 null,
                 null,
                 null
         );
         assert cursor != null;
         while (cursor.moveToNext()) {
-            if (!cursor.getString(1).contains("calendar.google.com")) {
+            if (!cursor.getString(1).contains("calendar.google.com") && cursor.getInt(2) == CalendarContract.Calendars.CAL_ACCESS_OWNER) {
                 return Integer.valueOf(cursor.getString(0));
             }
         }
